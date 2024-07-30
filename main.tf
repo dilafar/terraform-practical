@@ -36,8 +36,8 @@ resource "aws_internet_gateway" "dev-gateway" {
   }
 }
 
-resource "aws_route_table" "dev-route" {
-  vpc_id = aws_vpc.dev-vpc.id
+resource "aws_default_route_table" "dev-route" {
+  default_route_table_id = aws_vpc.dev-vpc.default_route_table_id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -45,14 +45,10 @@ resource "aws_route_table" "dev-route" {
   }
 
   tags = {
-    Name = "${var.env_prefix}-route_table"
+    Name = "${var.env_prefix}-main-route_table"
   }
 }
 
-resource "aws_route_table_association" "route-association-dev" {
-  route_table_id = aws_route_table.dev-route.id
-  subnet_id      = aws_subnet.dev-subnet.id
-}
 
 output "dev-vpc-id" {
   value = aws_vpc.dev-vpc.id
