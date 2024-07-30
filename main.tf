@@ -163,7 +163,26 @@ resource "aws_instance" "dev-instance" {
                 EOF
 */
 
-  user_data = file("script.sh")
+  // user_data = file("script.sh")
+  connection {
+    type = "ssh"
+    host = self.public_ip
+    user = "ec2-user"
+    private_key = file(var.private_key_location)
+  }
+
+  provisioner "file" {
+    source = "script.sh"
+    destination = "/home/ec2-user/entry-script.sh"
+  }
+
+  provisioner "remote-exec" {
+    script = file("entry-script.sh")
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} > output.txt"
+  }
 
   tags = {
     Name = "${var.env_prefix}-instance"
