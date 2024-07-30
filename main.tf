@@ -154,6 +154,17 @@ resource "aws_instance" "dev-instance" {
   key_name                    = aws_key_pair.dev-key.key_name
   associate_public_ip_address = true
 
+  /* user_data = <<EOF
+                #!/bin/bash
+                sudo yum update -y && sudo yum install docker -y
+                sudo systemctl start docker 
+                sudo usermod -aG docker ec2-user
+                docker run -p 8080:80 nginx
+                EOF
+*/
+
+  user_data = file("script.sh")
+
   tags = {
     Name = "${var.env_prefix}-instance"
   }
