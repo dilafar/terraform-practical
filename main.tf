@@ -6,6 +6,7 @@ variable "vpc_cidr_block" {}
 variable "subnet_cidr_block" {}
 variable "availability_zone" {}
 variable "env_prefix" {}
+variable "my_ip" {}
 
 resource "aws_vpc" "dev-vpc" {
   cidr_block           = var.vpc_cidr_block
@@ -36,8 +37,8 @@ resource "aws_internet_gateway" "dev-gateway" {
   }
 }
 
-resource "aws_default_route_table" "dev-route" {
-  default_route_table_id = aws_vpc.dev-vpc.default_route_table_id
+resource "aws_route_table" "dev-route" {
+  vpc_id = aws_vpc.dev-vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -47,6 +48,44 @@ resource "aws_default_route_table" "dev-route" {
   tags = {
     Name = "${var.env_prefix}-main-route_table"
   }
+}
+
+resource "aws_route_table_association" "route-association-dev" {
+  route_table_id = aws_route_table.dev-route.id
+  subnet_id      = aws_subnet.dev-subnet.id
+}
+
+resource "aws_security_group" "dev-sg" {
+  name        = "dev-security-group"
+  description = "Allow ssh traffic from my ip"
+  vpc_id      = aws_vpc.dev-vpc.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.my_ip]
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+    prefix_list_ids = []
+  }
+
+  tags = {
+    Name = "${var.env_prefix}-sg"
+  }
+
 }
 
 
