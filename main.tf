@@ -2,22 +2,33 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_availability_zones" "zones" {}
+resource "aws_vpc" "my-vpc" {
+  cidr_block           = var.vpc_cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.my-cluster-dev.endpoint
-  token                  = data.aws_eks_cluster_auth.my-cluster-dev-auth.token
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster-dev.certificate_authority[0].data)
+  tags = {
+    Name = "vpc-${var.env_prefix}"
+  }
 }
 
-data "aws_eks_cluster" "my-cluster-dev" {
-  name = module.eks.cluster_id
+module "my-subnet" {
+  source              = "./modules/subnet"
+  vpc_id              = aws_vpc.my-vpc.id
+  public_cidr_blocks  = var.public_cidr_blocks
+  availability_zone_1 = var.availability_zone_1
+  availability_zone_2 = var.availability_zone_2
+  availability_zone_3 = var.availability_zone_3
+  env_prefix          = var.env_prefix
+  private_cidr_blocks = var.private_cidr_blocks
 }
-
-data "aws_eks_cluster_auth" "my-cluster-dev-auth" {
-  name = module.eks.cluster_id
-}
-
-locals {
-  cluster_name = var.cluster_name
+module "webserver" {
+  source              = "./modules/webserver"
+  public_key_location = var.public_key_location
+  env_prefix          = var.env_prefix
+  vpc_id              = aws_vpc.my-vpc.id
+  my_ip               = var.my_ip
+  instance_type       = var.instance_type
+  availability_zone_1 = var.availability_zone_1
+  pub_subnet_id_1     = module.my-subnet.subnet.id
 }

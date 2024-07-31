@@ -4,5 +4,7 @@ variable "my_ip" {}
 variable "instance_type" {}
 variable "public_cidr_blocks" {}
 variable "private_cidr_blocks" {}
-variable "cluster_name" {}
-variable "vpc_name" {}
+variable "availability_zone_1" {}
+variable "availability_zone_2" {}
+variable "availability_zone_3" {}
+variable "public_key_location" {}
