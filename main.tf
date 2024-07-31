@@ -2,11 +2,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-variable "vpc_cidr_block" {}
-variable "subnet_cidr_block" {}
-variable "availability_zone" {}
-variable "env_prefix" {}
-
 resource "aws_vpc" "dev-vpc" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
@@ -18,43 +13,28 @@ resource "aws_vpc" "dev-vpc" {
 
 }
 
-resource "aws_subnet" "dev-subnet" {
-  vpc_id            = aws_vpc.dev-vpc.id
-  availability_zone = var.availability_zone
-  cidr_block        = var.subnet_cidr_block
 
-  tags = {
-    Name = "${var.env_prefix}-subnet"
-  }
+module "subnet" {
+  source = "./modules/subnet"
+
+  env_prefix             = var.env_prefix
+  availability_zone      = var.availability_zone
+  subnet_cidr_block      = var.subnet_cidr_block
+  vpc_id                 = aws_vpc.dev-vpc.id
+  default_route_table_id = aws_vpc.dev-vpc.default_route_table_id
 
 }
 
-resource "aws_internet_gateway" "dev-gateway" {
-  vpc_id = aws_vpc.dev-vpc.id
-  tags = {
-    Name = "${var.env_prefix}-igw"
-  }
+
+module "webserver" {
+  source              = "./modules/webserver"
+  vpc_id              = aws_vpc.dev-vpc.id
+  my_ip               = var.my_ip
+  env_prefix          = var.env_prefix
+  ami_name            = var.ami_name
+  public_key_location = var.public_key_location
+  instance_type       = var.instance_type
+  availability_zone   = var.availability_zone
+  subnet_id           = module.subnet.subnet_id.id
+
 }
-
-resource "aws_route_table" "dev-route" {
-  vpc_id = aws_vpc.dev-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.dev-gateway.id
-  }
-
-  tags = {
-    Name = "${var.env_prefix}-route_table"
-  }
-}
-
-resource "aws_route_table_association" "route-association-dev" {
-  route_table_id = aws_route_table.dev-route.id
-  subnet_id      = aws_subnet.dev-subnet.id
-}
-
-output "dev-vpc-id" {
-  value = aws_vpc.dev-vpc.id
-}
-
