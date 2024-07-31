@@ -37,5 +37,4 @@ module "eks" {
     Environment = "${var.env_prefix}"
   }
 
-
 }
