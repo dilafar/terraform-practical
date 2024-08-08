@@ -27,14 +27,13 @@ module "subnet" {
 
 
 module "webserver" {
-  source              = "./modules/webserver"
-  vpc_id              = aws_vpc.dev-vpc.id
-  my_ip               = var.my_ip
-  env_prefix          = var.env_prefix
-  ami_name            = var.ami_name
-  public_key_location = var.public_key_location
-  instance_type       = var.instance_type
-  availability_zone   = var.availability_zone
-  subnet_id           = module.subnet.subnet_id.id
-
+  source               = "./modules/webserver"
+  vpc_id               = aws_vpc.dev-vpc.id
+  my_ip                = var.my_ip
+  env_prefix           = var.env_prefix
+  ami_name             = var.ami_name
+  public_key_location  = var.public_key_location
+  instance_type        = var.instance_type
+  availability_zone    = var.availability_zone
+  subnet_id            = module.subnet.subnet_id.id
 }

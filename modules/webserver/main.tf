@@ -32,7 +32,7 @@ resource "aws_security_group" "dev-sg" {
 
 }
 
-data "aws_ami" "dev-ami" {
+/*data "aws_ami" "dev-ami" {
   most_recent = true
   owners      = ["amazon"]
   filter {
@@ -48,7 +48,7 @@ data "aws_ami" "dev-ami" {
     Name = "${var.env_prefix}-ami"
   }
 
-}
+}*/
 
 resource "aws_key_pair" "dev-key" {
   key_name   = "server-key"
@@ -56,7 +56,7 @@ resource "aws_key_pair" "dev-key" {
 }
 
 resource "aws_instance" "dev-instance" {
-  ami                         = data.aws_ami.dev-ami.id
+  ami                         = "ami-03e31863b8e1f70a5"
   instance_type               = var.instance_type
   availability_zone           = var.availability_zone
   subnet_id                   = var.subnet_id
@@ -64,11 +64,24 @@ resource "aws_instance" "dev-instance" {
   key_name                    = aws_key_pair.dev-key.key_name
   associate_public_ip_address = true
 
-  user_data = file("script.sh")
+  #user_data = file("script.sh")
   
   tags = {
-    Name = "${var.env_prefix}-instance"
+    Name = "${var.env_prefix}-server"
   }
 
 }
 
+
+
+/*
+resource "null_resource" "name" {
+  triggers = {
+    trigger = aws_instance.dev-instance.public_ip
+  }
+  provisioner "local-exec" {
+    #working_dir = "/mnt/e/terraform-new-practice/terraform-practical"
+    command = "ansible-playbook --inventory ${aws_instance.dev-instance.public_ip}, --private-key /home/fadhil/.ssh/id_rsa --user ubuntu  install-docker.yaml"
+    }
+}
+*/
