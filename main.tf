@@ -33,7 +33,9 @@ module "webserver" {
   env_prefix           = var.env_prefix
   ami_name             = var.ami_name
   public_key_location  = var.public_key_location
-  instance_type        = var.instance_type
+  instance_type_master = var.instance_type_master
+  instance_type_worker = var.instance_type_worker
   availability_zone    = var.availability_zone
   subnet_id            = module.subnet.subnet_id.id
+  vpc_cidr_block       = var.vpc_cidr_block
 }
